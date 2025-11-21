@@ -24,6 +24,16 @@
     allowedUDPPorts = [ 51820 ];
   };
 
+  # WireGuard istemcileri için NAT (wg0 -> enp5s0 üzerinden internete çıksın)
+  networking.nat = {
+    enable = true;
+    externalInterface = "enp5s0";
+    internalInterfaces = [ "wg0" ];
+  };
+
+  # Ek garanti: IPv4 forwarding
+  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
+
   # Docker (ERPNext vs için zemin)
   virtualisation.docker.enable = true;
 
