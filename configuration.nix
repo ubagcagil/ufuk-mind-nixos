@@ -22,6 +22,10 @@
     enable = true;
     allowedTCPPorts = [ 22 ];
     allowedUDPPorts = [ 51820 ];
+
+    # WireGuard tüneli güvenilir arayüz: laptop'tan gelen trafiğe izin ver
+    trustedInterfaces = [ "wg0" ];
+    allowPing = true;
   };
 
   # WireGuard istemcileri için NAT (wg0 -> enp5s0 üzerinden internete çıksın)
