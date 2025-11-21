@@ -157,11 +157,12 @@
     listenPort = 51820;
     privateKeyFile = "/etc/wireguard/wg0-privkey";
 
-    # ufuk_laptop peer'i – public key senin az önce ürettiğin
     peers = [
       {
-        publicKey = "z/qyWY14ddR7jg0+iFXCYXeZAjf/VVANJpTgmm6mNls=";
+        # Laptop peer
+        publicKey = "xMFEFKGQL6Hi46xT/OzKD6wyEbG7r9dMUPEackQO1Xo=";
         allowedIPs = [ "10.10.0.2/32" ];
+        persistentKeepalive = 25;
       }
     ];
   };
