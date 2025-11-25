@@ -172,6 +172,28 @@
   };
 
   ################################
+  # Güç yönetimi – kasa ASLA uyumaya gitmesin
+  ################################
+  # systemd'nin sleep.conf'u: suspend/hibernate tamamen kapalı
+  systemd.sleep.extraConfig = ''
+    AllowSuspend=no
+    AllowHibernation=no
+    AllowHybridSleep=no
+    AllowSuspendThenHibernate=no
+  '';
+
+  # logind idle davranışı: "boşta kaldım, bir şey yapma"
+  services.logind = {
+    lidSwitch = "ignore";         # laptop için, ama zararı yok
+    lidSwitchDocked = "ignore";
+    extraConfig = ''
+      IdleAction=ignore
+      IdleActionSec=0
+    '';
+  };
+
+
+  ################################
   # State version
   ################################
   system.stateVersion = "25.05";
