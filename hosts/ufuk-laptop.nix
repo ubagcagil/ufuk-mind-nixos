@@ -73,6 +73,15 @@
   };
 
   ################################
+  # SSH: sadece VPN + localhost
+  ################################
+  services.openssh.listenAddresses = [
+    { addr = "10.10.0.2"; port = 22; }
+    { addr = "127.0.0.1"; port = 22; }
+  ];
+
+
+  ################################
   # State version
   ################################
   system.stateVersion = "25.05";
