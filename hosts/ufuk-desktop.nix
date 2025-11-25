@@ -55,7 +55,7 @@
     peers = [
       {
         # Laptop peer
-        publicKey = "xMFEFKGQL6Hi46xT/OzKD6wyEbG7r9dMUPEackQO1Xo=";
+        publicKey = "z/qyWY14ddR7jg0+iFXCYXeZAjf/VVANJpTgmm6mNls=";
         allowedIPs = [ "10.10.0.2/32" ];
         persistentKeepalive = 25;
       }
