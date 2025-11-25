@@ -192,6 +192,11 @@
     '';
   };
 
+  ################################
+  # Nix experimental features (flakes)
+  ################################
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
 
   ################################
   # State version
