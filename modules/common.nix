@@ -1,11 +1,13 @@
 { config, pkgs, ... }:
 
 {
+
   ################################
   # Boot
   ################################
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.systemd-boot.configurationLimit = 8;
 
   ################################
   # Ağ: NetworkManager + Firewall
@@ -120,6 +122,14 @@
       KbdInteractiveAuthentication = false;
       PermitRootLogin = "no";
     };
+  };
+
+  ################################
+  # Sudo: wheel grubuna şifresiz sudo
+  ################################
+  security.sudo = {
+    enable = true;
+    wheelNeedsPassword = false;
   };
 
   ################################
