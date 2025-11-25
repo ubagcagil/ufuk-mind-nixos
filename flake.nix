@@ -12,9 +12,12 @@
         ];
       };
 
-      # TODO: ufuk-laptop:
-      # Buraya daha sonra laptop donanım modülü ile ikinci profil gelecek.
-      # ufuk-laptop = nixpkgs.lib.nixosSystem { ... };
+      ufuk-laptop = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/ufuk-laptop.nix
+        ];
+      };
     };
   };
 }
