@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   ################################
@@ -25,6 +25,33 @@
 
   # Ek garanti: IPv4 forwarding
   boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
+
+  ################################
+  # Desktop: NetworkManager kapalı, DHCP yok
+  ################################
+  networking.networkmanager.enable = lib.mkForce false;
+  networking.useDHCP = false;
+  networking.dhcpcd.enable = false;
+
+  ################################
+  # Statik LAN IP (server)
+  ################################
+  networking.interfaces.enp5s0 = {
+    useDHCP = false;
+    ipv4.addresses = [
+      {
+        address = "192.168.1.11";
+        prefixLength = 24;
+      }
+    ];
+  };
+
+  networking.defaultGateway = "192.168.1.1";
+
+  networking.nameservers = [
+    "192.168.1.1"
+    "1.1.1.1"
+  ];
 
   ################################
   # NVIDIA / RTX 4090
@@ -63,6 +90,13 @@
   };
 
   ################################
+  # Firewall: server portları
+  ################################
+  networking.firewall.allowedTCPPorts = [ 22 ];
+  networking.firewall.allowedUDPPorts = [ 51820 ];
+  networking.firewall.trustedInterfaces = [ "wg0" ];
+
+  ################################
   # Güç yönetimi – kasa ASLA uyumaya gitmesin
   ################################
   systemd.sleep.extraConfig = ''
@@ -80,6 +114,14 @@
       IdleActionSec=0
     '';
   };
+
+  ################################
+  # SSH: Sadece VPN + localhost
+  ################################
+  services.openssh.listenAddresses = [
+    { addr = "10.10.0.1"; port = 22; }
+    { addr = "127.0.0.1"; port = 22; }
+  ];
 
   ################################
   # State version

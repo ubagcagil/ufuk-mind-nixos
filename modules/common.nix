@@ -16,13 +16,14 @@
 
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 22 ];
-    allowedUDPPorts = [ 51820 ];
-
-    # WireGuard tünelini güvenilir say, ping serbest
-    trustedInterfaces = [ "wg0" ];
     allowPing = true;
   };
+
+
+  ################################
+  # Avahi (mDNS) kapalı
+  ################################
+  services.avahi.enable = false;
 
   ################################
   # Docker
