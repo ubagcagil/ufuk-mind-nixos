@@ -1,5 +1,5 @@
 {
-  description = "Ufuk'un NixOS flake'i - ufuk-desktop";
+  description = "Ufuk NixOS configuration";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 
@@ -7,9 +7,9 @@
     nixosConfigurations.ufuk-desktop = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
-        ./hardware-configuration.nix
         ./configuration.nix
       ];
     };
   };
 }
+
