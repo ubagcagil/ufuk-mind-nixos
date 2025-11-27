@@ -111,6 +111,7 @@
     unzip
     nano
     wireguard-tools  # VPN için
+    cloudflared      # Cloudflare Tunnel CLI
   ];
 
   ################################

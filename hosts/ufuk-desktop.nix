@@ -92,7 +92,9 @@
   ################################
   # Firewall: server portları
   ################################
-  networking.firewall.allowedTCPPorts = [ 22 ];
+  # 22  : SSH (sadece localhost + VPN)
+  # 8080: ERPNext (lokal/VPN üzerinden)
+  networking.firewall.allowedTCPPorts = [ 22 8080 ];
   networking.firewall.allowedUDPPorts = [ 51820 ];
   networking.firewall.trustedInterfaces = [ "wg0" ];
 
@@ -122,6 +124,34 @@
     { addr = "10.10.0.1"; port = 22; }
     { addr = "127.0.0.1"; port = 22; }
   ];
+
+  ################################
+  # Cloudflare Tunnel: pena-erp
+  ################################
+  environment.etc."cloudflared/config.yml".text = ''
+    tunnel: ea6d9fd4-2eaf-4b5e-a992-c62e313c45b6
+    credentials-file: /home/ubagcagil/.cloudflared/ea6d9fd4-2eaf-4b5e-a992-c62e313c45b6.json
+
+    ingress:
+      - hostname: erp.penacafekarakoy.com
+        service: http://localhost:8080
+      - service: http_status:404
+  '';
+
+  systemd.services."cloudflared-pena-erp" = {
+    description = "Cloudflare Tunnel for Pena ERP";
+    after = [ "network-online.target" "docker.service" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      User = "ubagcagil";
+      Group = "users";
+      ExecStart = "${pkgs.cloudflared}/bin/cloudflared --config /etc/cloudflared/config.yml tunnel run pena-erp";
+      Restart = "always";
+      RestartSec = 5;
+    };
+  };
+
 
   ################################
   # State version
