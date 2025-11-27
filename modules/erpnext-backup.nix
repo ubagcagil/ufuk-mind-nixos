@@ -1,111 +1,115 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
-  backupRoot = "/var/backups/erpnext";
+  mkBackupService =
+    lane: {
+      description = "ERPNext backup (${lane})";
 
-  erpnextBackupScript = pkgs.writeShellScriptBin "erpnext-db-backup" ''
-    #!/usr/bin/env bash
-    set -euo pipefail
+      # PATH'e docker, gzip, coreutils ekle
+      path = [
+        pkgs.docker
+        pkgs.gzip
+        pkgs.coreutils
+      ];
 
-    CONFIG="/etc/erpnext-backup.conf"
+      serviceConfig = {
+        Type = "oneshot";
+        User = "root";
+      };
 
-    if [ ! -f "$CONFIG" ]; then
-      echo "[erpnext-backup] Missing $CONFIG, aborting." >&2
-      exit 1
-    fi
+      script = ''
+        set -eu
 
-    # shellcheck disable=SC1091
-    . "$CONFIG"
+        CONFIG="/etc/erpnext-backup.conf"
 
-    if [ -z "${DB_CONTAINER:-}" ] || [ -z "${DB_NAME:-}" ]; then
-      echo "[erpnext-backup] DB_CONTAINER or DB_NAME not set in $CONFIG" >&2
-      exit 1
-    fi
-
-    BACKUP_ROOT="${backupRoot}"
-
-    mkdir -p "$BACKUP_ROOT"/{daily,weekly,monthly,quarterly}
-
-    dump_into () {
-      local target="$1"
-      echo "[erpnext-backup] Writing $target"
-
-      docker exec -e DB_NAME="$DB_NAME" "$DB_CONTAINER" sh -c '
-        PASS="${MARIADB_ROOT_PASSWORD:-$MYSQL_ROOT_PASSWORD}"
-        if [ -z "$PASS" ]; then
-          echo "No MARIADB_ROOT_PASSWORD or MYSQL_ROOT_PASSWORD set in container" >&2
+        if [ ! -f "$CONFIG" ]; then
+          echo "[erpnext-backup] Missing $CONFIG" >&2
           exit 1
         fi
-        mysqldump -u root -p"$PASS" "$DB_NAME"
-      ' | gzip -c > "$target"
-    }
 
-    # her gün: daily (aynı dosyanın üstüne yazar)
-    dump_into "$BACKUP_ROOT/daily/erpnext-daily.sql.gz"
+        # DB_CONTAINER, DB_NAME, BACKUP_DIR, DB_USER, DB_PASSWORD buradan geliyor
+        . "$CONFIG"
 
-    dow="$(date +%u)"   # 1..7 (Mon..Sun)
-    dom="$(date +%d)"   # 01..31
-    mon="$(date +%m)"   # 01..12
+        if [ -z "$DB_CONTAINER" ] || [ -z "$DB_NAME" ] || [ -z "$BACKUP_DIR" ]; then
+          echo "[erpnext-backup] DB_CONTAINER / DB_NAME / BACKUP_DIR not set in $CONFIG" >&2
+          exit 1
+        fi
 
-    # haftalık: pazar günleri
-    if [ "$dow" = "7" ]; then
-      dump_into "$BACKUP_ROOT/weekly/erpnext-weekly.sql.gz"
-    fi
+        # Defaults
+        if [ -z "$DB_USER" ]; then
+          DB_USER="root"
+        fi
 
-    # aylık: her ayın 1'i
-    if [ "$dom" = "01" ]; then
-      dump_into "$BACKUP_ROOT/monthly/erpnext-monthly.sql.gz"
-    fi
+        PASS_ARG=""
+        if [ -n "$DB_PASSWORD" ]; then
+          PASS_ARG="--password=$DB_PASSWORD"
+        fi
 
-    # çeyrek: 01.01, 01.04, 01.07, 01.10
-    if [ "$dom" = "01" ] && \
-       { [ "$mon" = "01" ] || [ "$mon" = "04" ] || [ "$mon" = "07" ] || [ "$mon" = "10" ]; }
-    then
-      dump_into "$BACKUP_ROOT/quarterly/erpnext-quarterly.sql.gz"
-    fi
-  '';
+        mkdir -p "$BACKUP_DIR"
+
+        LANE="${lane}"
+        TS=$(date +%Y%m%d-%H%M%S)
+        OUT="$BACKUP_DIR/erpnext-$LANE.sql.gz"
+        TMP="$OUT.tmp"
+
+        echo "[erpnext-backup] $(date '+%F %T') lane=$LANE: starting backup..."
+
+        docker exec -i "$DB_CONTAINER" mysqldump \
+          --user="$DB_USER" \
+          $PASS_ARG \
+          "$DB_NAME" \
+          | gzip > "$TMP"
+
+        mv "$TMP" "$OUT"
+
+        echo "[erpnext-backup] $(date '+%F %T') lane=$LANE: backup complete: $OUT"
+      '';
+    };
 in
 {
-  #### Backup klasörleri
-  systemd.tmpfiles.rules = [
-    "d ${backupRoot} 0700 root root -"
-    "d ${backupRoot}/daily 0700 root root -"
-    "d ${backupRoot}/weekly 0700 root root -"
-    "d ${backupRoot}/monthly 0700 root root -"
-    "d ${backupRoot}/quarterly 0700 root root -"
-  ];
+  ################################
+  # Services
+  ################################
+  systemd.services.erpnext-backup-daily = mkBackupService "daily";
+  systemd.services.erpnext-backup-weekly = mkBackupService "weekly";
+  systemd.services.erpnext-backup-monthly = mkBackupService "monthly";
+  systemd.services.erpnext-backup-quarterly = mkBackupService "quarterly";
 
-  #### Basit config dosyası (şifresiz; sadece isimler)
-  environment.etc."erpnext-backup.conf".text = ''
-    # ERPNext DB backup config
-    # Docker içindeki MariaDB/MySQL container adını yaz:
-    # Örn: DB_CONTAINER="pena-mariadb-1"
-    DB_CONTAINER="CHANGE_ME_DB_CONTAINER"
-
-    # Yedeklenecek veritabanı adı:
-    # Örn: DB_NAME="erpnext" veya "site1.local" vs.
-    DB_NAME="CHANGE_ME_DB_NAME"
-  '';
-
-  #### Script'i sisteme ekle
-  environment.systemPackages = [
-    erpnextBackupScript
-  ];
-
-  #### systemd service + timer
-  systemd.services.erpnext-backup = {
-    description = "ERPNext MariaDB backup (daily/weekly/monthly/quarterly)";
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${erpnextBackupScript}/bin/erpnext-db-backup";
-      User = "root";
-    };
-  };
-
-  systemd.timers.erpnext-backup = {
+  ################################
+  # Timers
+  ################################
+  systemd.timers.erpnext-backup-daily = {
+    description = "ERPNext backup daily timer";
     wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "daily";
+      Persistent = true;
+    };
+  };
+
+  systemd.timers.erpnext-backup-weekly = {
+    description = "ERPNext backup weekly timer";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "Sun *-*-* 03:00:00";
+      Persistent = true;
+    };
+  };
+
+  systemd.timers.erpnext-backup-monthly = {
+    description = "ERPNext backup monthly timer";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "*-*-01 04:00:00";
+      Persistent = true;
+    };
+  };
+
+  systemd.timers.erpnext-backup-quarterly = {
+    description = "ERPNext backup quarterly timer";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "*-01,04,07,10-01 05:00:00";
       Persistent = true;
     };
   };
