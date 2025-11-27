@@ -7,6 +7,7 @@
   imports = [
     ../hardware-configuration.nix
     ../modules/common.nix
+    ../modules/erpnext-backup.nix
   ];
 
   ################################
