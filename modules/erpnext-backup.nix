@@ -18,7 +18,7 @@ let
       };
 
       script = ''
-        set -eu
+        set -e
 
         CONFIG="/etc/erpnext-backup.conf"
 
