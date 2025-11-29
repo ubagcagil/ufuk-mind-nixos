@@ -43,3 +43,13 @@ Bu klasördeki dokümanlar, `/srv/erpnext` altındaki runtime kopyalar yerine
 
 Yeni bir makinede Pena ERP stack’ini anlamak isteyen kişi, önce bu dosyadan
 başlamalıdır.
+
+# Pena ERPNext Genom (Docs Root)
+
+Bu klasör, Pena Cafe'nin ERPNext tarafındaki **taşınabilir genomunu** tutar.
+
+## Dosyalar
+
+- `stack.md` — NixOS → Docker → ERPNext stack'in teknik iskeleti
+- `config-genome.md` — CSV bazlı POS / masa / menü genomu
+- `item-codec.md` — İçecek & yiyecekler için insan-okur + makine-okur kod grameri
