@@ -47,3 +47,16 @@ Pena Cafe için ERPNext, Docker ve POS/masa/menü yapısının tamamı
 `erpnext/` klasöründe dokümante edilir:
 
 - [Pena ERPNext / PoS Stack](./erpnext/README.md)
+
+## ERPNext / Pena Cafe
+
+Pena Cafe'nin ERPNext tarafı tamamen kod ve dokümanla tanımlı:
+
+- `erpnext/` — Pena ERPNext genom kökü
+  - `stack.md` — NixOS → Docker → ERPNext stack iskeleti
+  - `config-genome.md` — POS / masa / menü için CSV genomu
+  - `item-codec.md` — İçecek ve yiyecekler için codec grameri
+
+> Not: Çalışan ERP stack host'ta `/srv/erpnext` altında. Oradaki
+> `README-PENA-*` dosyaları yalnızca runtime yardımcı; **kanonik dokümanlar
+> bu repo içindeki `erpnext/` klasöründe**.
