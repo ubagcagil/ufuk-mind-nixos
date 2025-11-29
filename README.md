@@ -40,3 +40,10 @@ Typical workflow:
 
    ```bash
    sudo nixos-rebuild switch --flake /etc/nixos#ufuk-desktop
+
+## Pena ERPNext / PoS
+
+Pena Cafe için ERPNext, Docker ve POS/masa/menü yapısının tamamı
+`erpnext/` klasöründe dokümante edilir:
+
+- [Pena ERPNext / PoS Stack](./erpnext/README.md)
