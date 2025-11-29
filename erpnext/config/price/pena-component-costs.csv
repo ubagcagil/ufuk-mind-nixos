@@ -1,0 +1,27 @@
+component_type,code,description,unit_cost_try
+SHOT,1X,Single espresso shot,8
+SHOT,2X,Extra espresso shot,8
+
+SYRUP,PLN,No syrup,0
+SYRUP,CAR,Caramel syrup pump,4
+SYRUP,HZL,Hazelnut syrup pump,4
+SYRUP,VAN,Vanilla syrup pump,4
+SYRUP,PMK,Pumpkin spice syrup pump,4
+SYRUP,DCH,Dark chocolate sauce,4
+SYRUP,WCH,White chocolate sauce,4
+
+MILK,PA,Whole/pasteurised milk 200ml,6
+MILK,OA,Oat milk 200ml,10
+MILK,LF,Lactose-free milk 200ml,7
+MILK,AL,Almond milk 200ml,9
+
+BASE,LAT,Latte base overhead,3
+BASE,CAP,Cappuccino base overhead,3
+BASE,FLW,Flat White base overhead,3
+BASE,MAC,Macchiato base overhead,2
+BASE,COR,Cortado base overhead,2
+BASE,MOC,Mocha base overhead,3
+BASE,ESP,Espresso base overhead,2
+BASE,AMR,Americano base overhead,2
+BASE,LNG,Lungo base overhead,2
+BASE,RIS,Ristretto base overhead,2
