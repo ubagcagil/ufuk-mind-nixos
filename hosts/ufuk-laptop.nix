@@ -65,7 +65,7 @@
         # Şu anki endpoint'in ne olduğunu biliyorsun:
         # İster LAN IP (192.168.1.11:51820)
         # ister public IP:PORT kullanabilirsin.
-        endpoint = "192.168.1.11:51820";
+        endpoint = "159.146.11.175:51820";
 
         persistentKeepalive = 25;
       }
