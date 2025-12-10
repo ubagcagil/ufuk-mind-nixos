@@ -112,7 +112,9 @@
     nano
     wireguard-tools  # VPN için
     cloudflared      # Cloudflare Tunnel CLI
-  ];
+    python3Full
+    steam
+ ];
 
   ################################
   # SSH sunucu
