@@ -8,14 +8,14 @@
       ufuk-desktop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          ./hosts/ufuk-desktop.nix
+          ./nixos/hosts/ufuk-desktop.nix
         ];
       };
 
       ufuk-laptop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          ./hosts/ufuk-laptop.nix
+          ./nixos/hosts/ufuk-laptop.nix
         ];
       };
     };
