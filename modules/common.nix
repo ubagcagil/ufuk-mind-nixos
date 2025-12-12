@@ -114,6 +114,8 @@
     cloudflared      # Cloudflare Tunnel CLI
     python3Full
     steam
+    appimage-run
+    thonny
  ];
 
   ################################
