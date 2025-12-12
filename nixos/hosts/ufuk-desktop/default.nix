@@ -5,11 +5,11 @@
   # Donanım + ortak modül
   ################################
   imports = [
-    ../hardware/ufuk-desktop.nix
-    ../modules/hardware/nvidia-and-tweaks.nix
-    ../modules/common.nix
-    ../modules/erpnext-docker.nix
-    ../modules/erpnext-backup.nix
+    ./hardware.nix
+    ../../modules/hardware/nvidia-and-tweaks.nix
+    ../../modules/common.nix
+    ../../modules/erpnext-docker.nix
+    ../../modules/erpnext-backup.nix
   ];
 
   ################################

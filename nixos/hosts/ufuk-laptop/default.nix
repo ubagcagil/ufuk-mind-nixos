@@ -5,8 +5,8 @@
   # Donanım + ortak modül
   ################################
   imports = [
-    ../hardware/ufuk-laptop.nix
-    ../modules/common.nix
+    ./hardware.nix
+    ../../modules/common.nix
   ];
 
   ################################

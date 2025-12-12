@@ -3,6 +3,7 @@
 {
   systemd.services.erpnext-docker = {
     description = "ERPNext Docker stack (frappe_docker pwd.yml)";
+    wants = [ "network-online.target" ];
     after = [ "network-online.target" "docker.service" ];
     requires = [ "docker.service" ];
     wantedBy = [ "multi-user.target" ];
