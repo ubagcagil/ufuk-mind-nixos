@@ -7,6 +7,7 @@
   imports = [
     ./hardware.nix
     ../../modules/common.nix
+    ../../modules/core/sys-update.nix
   ];
 
   ################################
