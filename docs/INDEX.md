@@ -22,3 +22,5 @@ Bu klasör, repo ve sistemin çalışma biçimi için tek referans noktasıdır.
 - Reproducibility: “yeni bir makinede aynı sonuç” hedeflenir.
 
 - Stack Runbook: `stacks/erpnext/README.md`
+
+- Pena + ERP Docs: `docs/PENA/README.md`
