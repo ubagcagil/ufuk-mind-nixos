@@ -49,3 +49,43 @@ RUNTIME (GIT DIŞI: state)
 - Runtime: `srv/`, `var/`, `run/`, `**/logs/`, `**/backups/`, `*.sql*`, `*.tgz`, `*.tar*`
 
 (Repodaki `.gitignore` bunu enforce eder; gerektiğinde genişletiriz.)
+
+
+# Life-Tree
+
+Aşağıdaki şema bu repo’nun “hayat ağacı” organizasyonunu görsel olarak özetler.
+
+```text
+life-tree (/etc/nixos)
+├── docs/
+│   ├── INDEX.md
+│   ├── NOW.md
+│   ├── SECRETS.md
+│   ├── LIFE-TREE.md
+│   └── PENA/
+│       ├── README.md
+│       ├── 00-START/
+│       ├── HOUSE/
+│       ├── ARCH/
+│       ├── ERP/
+│       ├── OPS/
+│       ├── ROADMAP/
+│       └── NOTES/
+├── nixos/
+│   ├── flake.nix / flake.lock
+│   ├── hosts/
+│   │   ├── ufuk-desktop/
+│   │   └── ufuk-laptop/
+│   └── modules/
+│       └── core/
+│           ├── sys-update.nix
+│           └── ...
+├── stacks/
+│   └── erpnext/
+│       ├── README.md
+│       ├── scripts/
+│       │   └── backup.sh
+│       └── ...
+└── README.md
+
+Not: Bu şema “yaklaşık” bir haritadır; zamanla repo büyüdükçe güncellenir.
