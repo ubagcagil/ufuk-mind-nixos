@@ -1,17 +1,9 @@
-# Start Here
+# 00-START
 
-## Pena nedir?
-- Karaköy’de minimal, sakin, kültür-odaklı bir espresso bar.
-- Üst kat: üretim/okuma/çalışma alanı (ofis) + dijital “zero point”.
+Bu bölüm “Pena nedir?” sorusuna 5 dakikada cevap verir.
 
-## ERP (URY) neden var?
-- Operasyonu şeffaflaştırmak (stok, satış, muhasebe, iş akışları).
-- Tek kişinin yönetebileceği kadar otomasyon, ama “insan” dokusunu bozmadan.
-
-## Bu repo neyi kapsar?
-- NixOS + homelab altyapı tanımı (infra as code).
-- ERPNext/Frappé stack runbook’ları.
-- Pena’nın felsefesi ve işletim prensipleri.
-
-## “Şu an” ne?
-`docs/NOW.md` ana referanstır.
+## Yeni gelen için
+1) `docs/PENA/README.md` oku
+2) `docs/PENA/HOUSE/README.md` (mekânın hissi ve kuralları)
+3) `docs/PENA/ARCH/README.md` (dijital prensipler)
+4) `docs/PENA/ERP/README.md` (ERP kapsamı ve sınırlar)
