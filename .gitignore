@@ -32,3 +32,22 @@ run/
 .DS_Store
 *~
 *.swp
+
+# BEGIN SECRETS (do not commit)
+secrets/
+**/secrets/
+*.env
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.age
+*.enc
+*.gpg
+*id_rsa*
+*id_ed25519*
+# END SECRETS
