@@ -1,78 +1,110 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LANE="${1:-daily}"
+LANE="${1:-${LANE:-daily}}"
 
-STACK_DIR="${STACK_DIR:-/srv/erpnext}"
+CONFIG="/etc/erpnext-backup.conf"
+if [[ ! -f "$CONFIG" ]]; then
+  echo "[erpnext-backup] Missing $CONFIG" >&2
+  exit 1
+fi
+# shellcheck disable=SC1090
+. "$CONFIG"
+
+ERP_DIR="${ERP_DIR:-/srv/erpnext}"
 COMPOSE_FILE="${COMPOSE_FILE:-pwd.yml}"
+SERVICE="${SERVICE:-backend}"
 SITE="${SITE:-frontend}"
-BACKEND_SERVICE="${BACKEND_SERVICE:-backend}"
-OUT_DIR="${OUT_DIR:-/srv/erpnext-backups}"
+BACKUP_DIR="${BACKUP_DIR:-/srv/erpnext-backups}"
 
-WITH_FILES=0
-if [[ "$LANE" != "daily" ]]; then
-  WITH_FILES=1
+# Lane -> default with_files
+WITH_FILES="${WITH_FILES:-}"
+if [[ -z "$WITH_FILES" ]]; then
+  case "$LANE" in
+    daily) WITH_FILES=0 ;;
+    *)     WITH_FILES=1 ;;
+  esac
 fi
 
-ts() { date '+%F %T'; }
+cd "$ERP_DIR"
 
-cd "$STACK_DIR"
+mkdir -p "$BACKUP_DIR"
+chgrp users "$BACKUP_DIR" 2>/dev/null || true
+chmod 750 "$BACKUP_DIR" 2>/dev/null || true
 
-CID="$(docker compose -f "$COMPOSE_FILE" ps -q "$BACKEND_SERVICE" || true)"
+echo "[erpnext-backup] $(date '+%F %T') lane=$LANE: bench backup (site=$SITE with_files=$WITH_FILES)"
+
+if [[ "$WITH_FILES" == "1" ]]; then
+  docker compose -f "$COMPOSE_FILE" exec -T "$SERVICE" bash -lc \
+    "cd /home/frappe/frappe-bench && bench --site '$SITE' backup --with-files"
+else
+  docker compose -f "$COMPOSE_FILE" exec -T "$SERVICE" bash -lc \
+    "cd /home/frappe/frappe-bench && bench --site '$SITE' backup"
+fi
+
+CID="$(docker compose -f "$COMPOSE_FILE" ps -q "$SERVICE")"
 if [[ -z "$CID" ]]; then
-  echo "[erpnext-backup] $(ts) ERROR: backend container not found" >&2
+  echo "[erpnext-backup] ERROR: could not resolve container id for service=$SERVICE" >&2
   exit 1
 fi
 
-
-echo "[erpnext-backup] $(ts) lane=$LANE: bench backup (site=$SITE with_files=$WITH_FILES)"
-
-if [[ "$WITH_FILES" -eq 1 ]]; then
-  docker compose -f "$COMPOSE_FILE" exec -T "$BACKEND_SERVICE" bash -lc \
-    "cd /home/frappe/frappe-bench && bench --site \"$SITE\" backup --with-files"
-else
-  docker compose -f "$COMPOSE_FILE" exec -T "$BACKEND_SERVICE" bash -lc \
-    "cd /home/frappe/frappe-bench && bench --site \"$SITE\" backup"
+REMOTE_DIR="/home/frappe/frappe-bench/sites/$SITE/private/backups"
+REMOTE_DB="$(docker exec "$CID" bash -lc "ls -1t $REMOTE_DIR/*-${SITE}-database.sql.gz 2>/dev/null | head -n1")"
+if [[ -z "$REMOTE_DB" ]]; then
+  echo "[erpnext-backup] ERROR: database backup not found in $REMOTE_DIR" >&2
+  exit 1
 fi
 
-SQL_IN="$(docker compose -f "$COMPOSE_FILE" exec -T "$BACKEND_SERVICE" bash -lc \
-  "ls -1t /home/frappe/frappe-bench/sites/$SITE/private/backups/*.sql.gz 2>/dev/null | head -n 1" || true)"
-[[ -n "$SQL_IN" ]] || { echo "[erpnext-backup] $(ts) ERROR: sql backup not found" >&2; exit 1; }
+BASE="${REMOTE_DB%-database.sql.gz}"
+REMOTE_CFG="${BASE}-site_config_backup.json"
+REMOTE_FILES="${BASE}-files.tar"
+REMOTE_PFILES="${BASE}-private-files.tar"
 
-PUB_IN=""
-PRIV_IN=""
-if [[ "$WITH_FILES" -eq 1 ]]; then
-  PUB_IN="$(docker compose -f "$COMPOSE_FILE" exec -T "$BACKEND_SERVICE" bash -lc \
-    "ls -1t /home/frappe/frappe-bench/sites/$SITE/private/backups/*public-files*.tar* 2>/dev/null | head -n 1" || true)"
-  PRIV_IN="$(docker compose -f "$COMPOSE_FILE" exec -T "$BACKEND_SERVICE" bash -lc \
-    "ls -1t /home/frappe/frappe-bench/sites/$SITE/private/backups/*private-files*.tar* 2>/dev/null | head -n 1" || true)"
-  [[ -n "$PUB_IN" && -n "$PRIV_IN" ]] || { echo "[erpnext-backup] $(ts) ERROR: file backups not found" >&2; exit 1; }
+STAGE="$(mktemp -d -p "$BACKUP_DIR" ".stage-${LANE}-XXXXXX")"
+cleanup() { rm -rf "$STAGE"; }
+trap cleanup EXIT
+
+# Always: DB (and config if exists)
+docker cp "$CID:$REMOTE_DB" "$STAGE/"
+if docker exec "$CID" test -f "$REMOTE_CFG" >/dev/null 2>&1; then
+  docker cp "$CID:$REMOTE_CFG" "$STAGE/"
 fi
 
-mkdir -p "$OUT_DIR"
-TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT
+# Best-effort: file tarballs (do NOT fail service if missing)
+if [[ "$WITH_FILES" == "1" ]]; then
+  if docker exec "$CID" test -f "$REMOTE_FILES" >/dev/null 2>&1; then
+    docker cp "$CID:$REMOTE_FILES" "$STAGE/"
+  else
+    echo "[erpnext-backup] WARN: public files tar not found: $REMOTE_FILES" >&2
+  fi
 
-docker cp "${CID}:${SQL_IN}" "$TMP_DIR/db.sql.gz"
-test -s "$TMP_DIR/db.sql.gz"
-
-if [[ "$WITH_FILES" -eq 1 ]]; then
-  docker cp "${CID}:${PUB_IN}"  "$TMP_DIR/public-files.tar"
-  docker cp "${CID}:${PRIV_IN}" "$TMP_DIR/private-files.tar"
-  test -s "$TMP_DIR/public-files.tar"
-  test -s "$TMP_DIR/private-files.tar"
+  if docker exec "$CID" test -f "$REMOTE_PFILES" >/dev/null 2>&1; then
+    docker cp "$CID:$REMOTE_PFILES" "$STAGE/"
+  else
+    echo "[erpnext-backup] WARN: private files tar not found: $REMOTE_PFILES" >&2
+  fi
 fi
 
-if [[ "$WITH_FILES" -eq 0 ]]; then
-  OUT="$OUT_DIR/erpnext-${LANE}.sql.gz"
-  cp "$TMP_DIR/db.sql.gz" "${OUT}.tmp"
-  mv "${OUT}.tmp" "$OUT"
-else
-  OUT="$OUT_DIR/erpnext-${LANE}.tgz"
-  tar -C "$TMP_DIR" -czf "${OUT}.tmp" db.sql.gz public-files.tar private-files.tar
-  mv "${OUT}.tmp" "$OUT"
+OUT_DB="$BACKUP_DIR/erpnext-$LANE.sql.gz"
+mv -f "$STAGE/$(basename "$REMOTE_DB")" "$OUT_DB"
+gzip -t "$OUT_DB"
+
+# Guard against the old “20-byte gz” style garbage
+SIZE="$(stat -c%s "$OUT_DB" 2>/dev/null || echo 0)"
+if [[ "$SIZE" -lt 200 ]]; then
+  echo "[erpnext-backup] ERROR: backup too small ($SIZE bytes): $OUT_DB" >&2
+  exit 1
 fi
 
-echo "[erpnext-backup] $(ts) lane=$LANE: OK -> $OUT"
+if [[ -f "$STAGE/$(basename "$REMOTE_CFG")" ]]; then
+  mv -f "$STAGE/$(basename "$REMOTE_CFG")" "$BACKUP_DIR/erpnext-$LANE-site_config_backup.json"
+fi
+if [[ -f "$STAGE/$(basename "$REMOTE_FILES")" ]]; then
+  mv -f "$STAGE/$(basename "$REMOTE_FILES")" "$BACKUP_DIR/erpnext-$LANE-files.tar"
+fi
+if [[ -f "$STAGE/$(basename "$REMOTE_PFILES")" ]]; then
+  mv -f "$STAGE/$(basename "$REMOTE_PFILES")" "$BACKUP_DIR/erpnext-$LANE-private-files.tar"
+fi
 
+echo "[erpnext-backup] $(date '+%F %T') lane=$LANE: OK -> $OUT_DB"
 

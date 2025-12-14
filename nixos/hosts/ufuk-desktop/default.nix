@@ -10,6 +10,7 @@
     ../../modules/common.nix
     ../../modules/erpnext-docker.nix
     ../../modules/erpnext-backup.nix
+    ../../modules/core/sys-update.nix
   ];
 
   ################################
@@ -155,6 +156,20 @@
     };
   };
 
+ ############
+ #ERP BACKUP
+ #############
+ 
+ environment.etc."erpnext-backup.conf" = {
+    text = ''
+      ERP_DIR=/srv/erpnext
+      COMPOSE_FILE=pwd.yml
+      SERVICE=backend
+      SITE=frontend
+      BACKUP_DIR=/srv/erpnext-backups
+    '';
+    mode = "0640";
+  };
 
   ################################
   # State version
