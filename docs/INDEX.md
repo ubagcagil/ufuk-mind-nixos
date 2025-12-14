@@ -20,3 +20,5 @@ Bu klasör, repo ve sistemin çalışma biçimi için tek referans noktasıdır.
 
 - Secrets ve runtime state **repoya girmez** (dokümante edilir).
 - Reproducibility: “yeni bir makinede aynı sonuç” hedeflenir.
+
+- Stack Runbook: `stacks/erpnext/README.md`
