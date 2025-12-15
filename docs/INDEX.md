@@ -8,6 +8,9 @@ Bu klasör, repo ve sistemin çalışma biçimi için tek referans noktasıdır.
   → `docs/NOW.md`
 - **LIFE TREE**: repo → runtime ayrımı + ASCII harita  
   → `docs/LIFE-TREE.md`
+- Secrets policy: `docs/SECRETS.md`
+
+
 
 ## Runbooks (operasyon)
 
