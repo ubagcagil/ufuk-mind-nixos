@@ -1,3 +1,10 @@
+# Secrets (Canonical)
+
+TL;DR:
+- Secret/token/private key/DB dump repoya girmez.
+- Repoda sadece şablonlar ve “hangi servis hangi dosyayı bekliyor?” dokümanı bulunur.
+- Gerçek secretlar root-owned bir dizinde tutulur (örn. `/etc/nixos/secrets/`) ve `chmod 600` yapılır.
+
 # Secrets Policy
 
 Bu repo “dijital miras” olsun diye her şeyi taşır; ancak **secret içermez**.
