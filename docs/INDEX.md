@@ -23,4 +23,4 @@ Bu klasör, repo ve sistemin çalışma biçimi için tek referans noktasıdır.
 
 - Stack Runbook: `stacks/erpnext/README.md`
 
-- Pena + ERP Docs: `docs/PENA/README.md`
+- Pena + ERP Docs: `pena/README.md`
