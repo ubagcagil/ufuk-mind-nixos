@@ -1,16 +1,38 @@
-# Pena
+# Pena (Karaköy) — Canonical
 
-Bu klasör Pena’nın “canonical” (tek doğru kaynak) dokümantasyonudur.
-Tarihçe/ham notlar: `docs/PENA/NOTES/LEGACY/`
-Yeniden yazım kuyruğu: `docs/PENA/NOTES/REWRITE-QUEUE.md`
+Bu klasör, Pena’nın kültürü, işletme prensipleri ve dijital omurgası için **tek kanonik** kaynaktır.
+Amaç: “Pena nedir ve nasıl yaşar?” sorusuna kısa, net cevap.
 
-## Harita
-- Başlangıç: `docs/PENA/00-START/README.md`
-- Mekân & kültür: `docs/PENA/HOUSE/README.md`
-- Dijital mimari: `docs/PENA/ARCH/README.md`
-- ERP (iş akışları): `docs/PENA/ERP/README.md`
-- Operasyon: `docs/PENA/OPS/README.md`
-- Yol haritası: `docs/PENA/ROADMAP/README.md`
-- Notlar: `docs/PENA/NOTES/README.md`
+## 0) Altın Kurallar
+- Müşteri verisi / finansal çıktı / DB dump / token / secret bu repoya girmez.
+- Repoda sadece: metinler, prensipler, şablonlar, runbook’lar ve mimari kararlar bulunur.
+- “Geçmiş arşivi” tutulmaz; sadece **şimdi** ve **yakın gelecek**.
 
-Kural: Canonical dosyalar kısa ve nettir. Detaylar NOTES altına gider.
+## 1) Kültür (tek gerçek kaynak)
+- Manifesto: `pena/culture/manifesto.md`
+- House Rules: `pena/culture/house-rules.md`
+
+## 2) Operasyon (minimal)
+Bu repo “dokümantasyon + otomasyon” mantığıyla yaşar. Günlük operasyon checklist’leri ve sistem runbook’ları `docs/` altındadır.
+
+- Aktif işler: `docs/NOW.md`
+- Sistem runbook’ları: `docs/runbooks/`
+- Felaket kurtarma: `docs/dr/`
+
+## 3) Dijital omurga (URY / ERPNext)
+Pena’nın dijital operasyonu iki katmanlıdır:
+1) **NixOS layer** (host + modül): `nixos/`
+2) **Runtime stack layer** (compose + script + ops): `stacks/erpnext/`
+
+Hedef:
+- ERPNext’in kurulumu/backup/restore/healthcheck işlemleri tekrarlanabilir olacak.
+- “Bir gün her şey sıfırlansa bile” bu repo ile geri dönülebilecek.
+
+## 4) Roadmap (kısa)
+- URY/ERPNext: stack’i stabil hale getir (assets, backup lanes, restore test)
+- Pena dijital varlık: metinler + web + menü/playlist + etkinlik akışı
+- Operasyon: minimum checklists + otomasyon
+
+## 5) Notlar / rewrite queue
+Eğer “rewrite queue” gerekiyorsa: `pena/rewrite-queue.md`
+Aksi halde aktif işler sadece `docs/NOW.md` üzerinden yürütülür.
